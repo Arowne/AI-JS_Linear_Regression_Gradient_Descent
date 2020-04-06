@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
+    <title>Gradient descent using linear regression</title>
+</head>
+<style>
+ #defaultCanvas0 {
+   transform: rotate(180deg);
+ }
+</style>
+<body>
+</body>
+<script>
+// Dataset => Handwritten point
+// Loss function => MAE (Mean Absolute Error)
+// Model prediction => mx+b
+// Minimization function  => Gradient descent
+ let y = 100;
+ var circles = []; // create an array to hold the DrawCircle objects
+ let predictPoints = []
+ let size = 700;
+ 
+ // Learning rate
+ let learning_rate = 0.0001;
+ // Iterations
+ let iterations = 1000;
+ // mae
+ let mae = 0;
+ // Pente
+ let m = 0;
+ // Intersection
+ let b = 0;
+  
+ function setup() { 
+  createCanvas(size, size);
+   stroke(255); // Set line drawing color to white
+   frameRate(30);
+   background(0);
+   rotate(Math.PI/2);
+   // create and initialize the instances of the DrawCircle object
+   // populate the circles array with all the instances.
+ } 
+ 
+ function prediction_points() {
+  predictPoints = [];
+  clear();
+  for (var x = 0; x < predictPoints.length; x++ ) {
+    predictPoints.remove(0);
+  }
+
+  for (var x = 0; x < size; x++ ) {
+    var d = 10;
+    var c = color(255, 40, 0);
+    var s = 10;
+    let y = m*x+b;
+    console.log(b);
+    var newCircle = new DrawCircle(x, y, d, c, s);
+    predictPoints.push(newCircle);
+  }
+ }
+
+ function draw() { 
+   // iterate over the circles array and call the methods of the DrawCircle object
+   for (var i = 0; i < circles.length; i++) {
+     circles[i].display();
+   }
+
+   for (var i = 0; i < predictPoints.length; i++) {
+      predictPoints[i].display();
+    }
+   
+   // keep the number of circles on the canvas under 60
+   if (circles.length > 60) {
+       circles.shift();
+   }
+   
+ }
+ 
+ function mousePressed() {
+   // click the mouse to create a new DrawCircle object and add it to the circles array
+   var d = 10;
+   var c = color(255, 255, 255);
+   var s = 10;
+   var newCircle = new DrawCircle(Math.abs(mouseX- 700), Math.abs(mouseY- 700), d, c, s);
+   circles.push(newCircle);
+   run_regression();
+   prediction_points();
+   compute_mae();
+   setup();
+ }
+ 
+ // *** DrawCircle object *** //
+ // --- parameters --- //
+ // x 			-> circle - x position (center)
+ // y 			-> circle - y position (center)
+ // d 			-> circle - diameter
+ // c 			-> circle - fill color
+ // s			-> circle - speed 
+ function DrawCircle( x, y, d, c, s ) {
+   // declare the properties
+   this.xPos = x;
+   this.yPos = y;
+   this.diameter = d;
+   this.color = c;
+   this.speed = s;
+ }
+ 
+ DrawCircle.prototype = {
+     constructor: DrawCircle,
+   // *** Method: display the circle on the canvas *** 
+   display: function() {
+     fill(this.color);
+     ellipse(this.xPos,this.yPos, this.diameter, this.diameter);
+   },
+ }
+
+ function compute_mae() {
+   mae = 0
+   for (let i = 0; i < circles.length; i++) {
+     if (predictPoints[i]){
+      let predictPoint = predictPoints[i];
+      let y = circles[i];
+      mae += y - predictPoint;
+     }
+   }
+   mae = mae / circles.length
+ }
+
+ function run_regression() {
+
+    let N = circles.length;
+    let get_m_derivative = null;
+    let get_b_derivative = null;
+    m = 0;
+    b = 0;
+    mae = 0;
+
+   for (let i = 0; i < iterations; i++) {
+     for (let j = 0; j < N; j++) {
+      let x = circles[j].xPos;
+      let y = circles[j].yPos;
+      get_m_derivative += -2 * (y - (m*x+b))
+      get_b_derivative += -2 * (x * (y - (m*x+b)))
+     }
+
+     get_m_derivative = get_m_derivative/N
+     get_b_derivative = get_b_derivative/N
+
+     // Update m and update b
+     b = Math.abs(b - (get_b_derivative * learning_rate) - 700) 
+     m = m - (get_m_derivative * learning_rate)
+     console.log(m);
+   } 
+ }
+</script>
+
+</html>
